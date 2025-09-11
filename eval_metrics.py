@@ -14,3 +14,12 @@ def mean_difference(sampler, real_graph, generated_samples:list[torch.Tensor]):
     mean_obs = torch.stack(generated_obs).mean(axis = 0)
 
     return abs(real_obs-mean_obs)
+
+
+def number_of_isomorphic(real_graph, generated_samples:list[torch.Tensor]):
+    ref = nx.from_numpy_array(real_graph.cpu().numpy())
+    count = 0
+    for g in generated_samples:
+        if nx.is_isomorphic(nx.from_numpy_array(g.cpu().numpy()), ref):
+            count += 1
+    return count

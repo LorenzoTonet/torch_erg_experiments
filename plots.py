@@ -1,6 +1,9 @@
 import networkx as nx
 import torch
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
 
 def plot_graph(mtx: torch.Tensor, w=5, h=5):
     adj_matrix = mtx.cpu().numpy()
@@ -84,4 +87,27 @@ def boxplot_obs_samples(observables_samples: list, observable_data: torch.Tensor
         ax.legend()
     
     plt.tight_layout()
+    plt.show()
+
+def plot_params_iterations(params:list, w = 10, h = 8, scale = 0.6):
+
+    parlist_np = np.array([p.cpu().numpy() for p in params])
+    w = int(w * scale)
+    h = int(h * scale)
+
+    plt.figure(figsize = (parlist_np.shape[1] * w, h))
+    for p in range(parlist_np.shape[1]):
+        plt.subplot(1,parlist_np.shape[1], p + 1)
+        plt.plot(parlist_np[:,p], '.-')
+
+def plot_connected_components(list_of_graphs):
+    n_connected = []
+    for mtx in list_of_graphs:
+        comps = connected_components(csr_matrix(mtx.numpy()))
+        n_connected.append(comps[0])
+    plt.figure()
+    plt.plot(n_connected)
+    plt.xlabel('Iteration')
+    plt.ylabel('Number of connected components')
+    plt.title('Connected components over iterations')
     plt.show()
