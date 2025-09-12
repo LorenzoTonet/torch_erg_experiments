@@ -27,4 +27,26 @@ def gen_two_community_graph(max_nodes_per_community=20, min_nodes_per_community=
         G.add_edge(n1, n2)
 
     return G
+
+def random_tree_prufer(n):
+    """Genera un albero casuale con n nodi usando la sequenza di Prufer.
+    Args:
+        n (int): Numero di nodi nell'albero.
+    Returns:
+        G (networkx.Graph): Albero generato.
     
+    """
+
+    if n == 0:
+        raise ValueError("n must be > 0")
+    if n == 1:
+        return nx.empty_graph(1)
+    # genera sequenza di Prufer di lunghezza n-2
+    seq = [random.randrange(n) for _ in range(n-2)]
+    # costruisci l'albero da sequenza
+    G = nx.from_prufer_sequence(seq)
+    return G
+
+def generate_tree(n_nodes):
+    tree = random_tree_prufer(n_nodes)
+    return nx.to_numpy_array(tree)
