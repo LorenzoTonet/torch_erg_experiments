@@ -40,8 +40,8 @@ def hist_obs_samples(observables_samples: list, observable_data: torch.Tensor, w
     num_obs = observables_samples[0].shape[0]
     figsize = (num_obs * w * scale, h * scale)
     
-    samples_np = torch.stack(observables_samples).numpy()
-    data_np = observable_data.numpy()
+    samples_np = torch.stack(observables_samples).cpu().numpy()
+    data_np = observable_data.cpu().numpy()
     
     fig, axes = plt.subplots(1, num_obs, figsize=figsize, squeeze=False)
     
@@ -67,8 +67,8 @@ def boxplot_obs_samples(observables_samples: list, observable_data: torch.Tensor
     figsize = (num_obs * w * scale, h * scale)
     
 
-    samples_np = torch.stack(observables_samples).numpy()
-    data_np = observable_data.numpy()
+    samples_np = torch.stack(observables_samples).cpu().numpy()
+    data_np = observable_data.cpu().numpy()
     
     fig, axes = plt.subplots(1, num_obs, figsize=figsize, squeeze=False)
     
