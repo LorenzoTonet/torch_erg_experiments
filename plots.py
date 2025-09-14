@@ -117,3 +117,30 @@ def plot_connected_components(list_of_graphs):
     plt.ylabel('Number of connected components')
     plt.title('Connected components over iterations')
     plt.show()
+
+def plot_stats_on_samples(true_vals, mean_samplers, std_samplers=None, observables_labels=None):
+    n_stats = true_vals.shape[0]
+    fig, axs = plt.subplots(1, n_stats, figsize=(5*n_stats, 5))
+
+    for i in range(n_stats):
+        if observables_labels is not None:
+            axs[i].hist(mean_samplers[:, i].numpy(), bins=30, alpha=0.5, label=observables_labels[i], color="#11a39c")
+            axs[i].set_title(f'Distribution of {observables_labels[i]}')
+        else:
+            axs[i].hist(mean_samplers[:, i].numpy(), bins=30, alpha=0.5, label=f"Observable {i}", color="#11a39c")
+            axs[i].set_title(f'Distribution of Observable {i}')
+
+        axs[i].axvline(true_vals[i].item(), color='red', linestyle='dashed', linewidth=1, label='True value')
+        axs[i].axvline(mean_samplers[:, i].mean().item(), color='blue', linestyle='dashed', linewidth=1, label='Mean of samples')
+        if std_samplers is not None:
+            axs[i].axvline(mean_samplers[:, i].mean().item() + std_samplers[i].item(), color='blue', linestyle='dotted', linewidth=1, label = 'Standard Deviation')
+            axs[i].axvline(mean_samplers[:, i].mean().item() - std_samplers[i].item(), color='blue', linestyle='dotted', linewidth=1)
+            
+
+        axs[i].set_xlabel('Value')
+        axs[i].set_ylabel('Frequency')
+        axs[i].legend()
+        
+
+    plt.tight_layout()
+    plt.show()
