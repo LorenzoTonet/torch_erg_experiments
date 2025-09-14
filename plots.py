@@ -36,7 +36,7 @@ def compare_graphs(mtx1: torch.Tensor, mtx2: torch.Tensor, w=10, h=5, labels = F
     
     plt.show()
     
-def hist_obs_samples(observables_samples: list, observable_data: torch.Tensor, w = 10, h = 8, scale = 0.6, color = "#11a39c", bins = 30):
+def hist_obs_samples(observables_samples: list, observable_data: torch.Tensor, w = 10, h = 8, scale = 0.6, color = "#11a39c", bins = 30, obs_labels = None):
     num_obs = observables_samples[0].shape[0]
     figsize = (num_obs * w * scale, h * scale)
     
@@ -55,14 +55,16 @@ def hist_obs_samples(observables_samples: list, observable_data: torch.Tensor, w
             ax.axvline(data_np[p], color='r', linestyle='--', label='Data')
         else:
             ax.hist(data_np[:, p], bins=bins, alpha=0.5, label='Data')
-        
-        ax.set_title(f'Observable {p}')
+        if obs_labels is not None:
+            ax.set_title(f'{obs_labels[p]}')
+        else:
+            ax.set_title(f'Observable {p}')
         ax.legend()
     
     plt.tight_layout()
     plt.show()
 
-def boxplot_obs_samples(observables_samples: list, observable_data: torch.Tensor, w = 10, h = 8, scale = 0.6, color = "#11a39c"):
+def boxplot_obs_samples(observables_samples: list, observable_data: torch.Tensor, w = 10, h = 8, scale = 0.6, color = "#11a39c", obs_labels = None):
     num_obs = observables_samples[0].shape[0]
     figsize = (num_obs * w * scale, h * scale)
     
@@ -83,7 +85,10 @@ def boxplot_obs_samples(observables_samples: list, observable_data: torch.Tensor
         else:
             ax.boxplot(data_np[:, p], vert=False, patch_artist=True, boxprops=dict(facecolor=color), medianprops=dict(color='red'))
 
-        ax.set_title(f'Observable {p}')
+        if obs_labels is not None:
+            ax.set_title(f'{obs_labels[p]}')
+        else:
+            ax.set_title(f'Observable {p}')
         ax.legend()
     
     plt.tight_layout()
@@ -99,6 +104,7 @@ def plot_params_iterations(params:list, w = 10, h = 8, scale = 0.6, color = "#17
     for p in range(parlist_np.shape[1]):
         plt.subplot(1,parlist_np.shape[1], p + 1)
         plt.plot(parlist_np[:,p], '.-', color = color)
+        plt.title(f'Parameter {p}')
 
 def plot_connected_components(list_of_graphs):
     n_connected = []

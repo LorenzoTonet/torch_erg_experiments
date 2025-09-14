@@ -1,6 +1,6 @@
 from src.torch_erg import load_pglib_opf as lp
 from src.torch_erg.utils import laplacian_matrix
-from src.torch_erg.samplers import GWGSampler, MHSampler
+from src.torch_erg.samplers import BaseSampler, GWGSampler, MHSampler
 import torch
 import numpy as np
 import networkx as nx
@@ -9,6 +9,71 @@ import random as rnd
 import itertools
 
 from eval_metrics import mean_difference
+
+def get_stats_from_sampler(input_graph: torch.Tensor, 
+                           sampler: BaseSampler, 
+                           n_iter_training: int, 
+                           n_iter_sampling: int, 
+                           n_processes: int, 
+                           init_betas: torch.Tensor, 
+                           alpha=0.001, 
+                           min_change=0.05, 
+                           update_steps=3, 
+                           equilibrium_steps=100, 
+                           burn_in_fraction=0.01) -> tuple[torch.Tensor, torch.Tensor, list[torch.Tensor], list[torch.Tensor]]:
+    
+    """
+    Executes multiple independent runs of parameter estimation and sampling using the provided sampler.
+    Returns the mean and standard deviation of the sampled observables, as well as all individual means and parameter sets.
+    Parameters:
+        - input_graph: The input graph as a torch.Tensor.
+        - sampler: An instance of BaseSampler (e.g., GWGSampler or MHSampler).
+        - n_iter_training: Number of iterations for parameter estimation.
+        - n_iter_sampling: Number of iterations for sampling.
+        - n_processes: Number of independent runs to execute.
+        - init_betas: Initial parameters for the sampler.
+        - alpha: Learning rate for parameter updates.
+        - min_change: Minimum change threshold for parameter updates.
+        - update_steps: Frequency of parameter updates during training.
+        - equilibrium_steps: Number of final steps to consider for parameter estimation.
+        - burn_in_fraction: Fraction of initial samples to discard during sampling.
+    Returns:
+        - mean: Mean of the sampled observables across all runs.
+        - std: Standard deviation of the sampled observables across all runs.
+        - mean_values: List of mean observables from each run.
+        - parameters_sets: List of parameter sets from each run.
+    """
+
+    input_obs = sampler.observables(input_graph)
+
+    mean_values = []
+    parameters_sets = []
+    for i in range(n_processes):
+        #train the model
+        params, _ = sampler.param_run(graph=input_graph,
+                            observables=input_obs,
+                            params=init_betas,
+                            niter=n_iter_training,
+                            params_update_every=update_steps,
+                            save_every=50,
+                            save_params=True,
+                            alpha=alpha,                      
+                            min_change=min_change)
+
+        params_for_estimates = torch.stack(params[-equilibrium_steps:]).mean(axis = 0)
+        parameters_sets.append(params_for_estimates)
+        #sample
+        observables, _ = sampler.sample_run(graph=input_graph,
+                            observables=input_obs,
+                            params=params_for_estimates,
+                            niter=n_iter_sampling,
+                            save_every=50,
+                            burn_in = burn_in_fraction)
+
+        mean_values.append(torch.stack(observables).mean(axis=0))
+
+    #return mean and variance of the means, all the means and all the parameters sets
+    return torch.stack(mean_values).mean(axis=0), torch.stack(mean_values).std(axis=0), mean_values, parameters_sets
 
 def grid_search_params(sampler, ordmat, betas,
                        obs_weight=None,
