@@ -6,13 +6,20 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 import random
 
-def plot_graph(mtx: torch.Tensor, w=5, h=5, labels = False, nodecolor = '#17B6D1'):
+def plot_graph(mtx: torch.Tensor, w=5, h=5, labels = False, nodecolor = '#17B6D1', layout='spring', scale_kamada_grid=2, k_spring=0.5, title="Graph Visualization"):
     adj_matrix = mtx.cpu().numpy()
     graph = nx.from_numpy_array(adj_matrix)
-    pos = nx.spring_layout(graph)
+
+    if layout == 'spring':
+        pos = nx.spring_layout(graph)
+    elif layout == 'kamada':
+        pos = nx.kamada_kawai_layout(graph)
+    elif layout == 'kamada_grid':
+        pos = kamada_kawai_grid_layout(graph, scale=2)
+
     plt.figure(figsize=(w, h))
     nx.draw(graph, pos, with_labels=labels, node_color=nodecolor, edge_color='gray', node_size=500, font_size=10)
-    plt.title("Graph Visualization")
+    plt.title(title)
     plt.show()
 
 def compare_graphs(mtx1: torch.Tensor, mtx2: torch.Tensor, 
@@ -160,7 +167,6 @@ def plot_stats_on_samples(true_vals, mean_samplers, std_samplers=None, observabl
 
     plt.tight_layout()
     plt.show()
-
 
 def kamada_kawai_grid_layout(G, scale=3.0, seed=None):
     pos = {}
